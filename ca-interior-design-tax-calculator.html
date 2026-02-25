@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA Sales Tax Calculator — Interior Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --warm-white: #faf8f4;
+    --ink: #1a1612;
+    --muted: #7a6e62;
+    --accent: #b8866e;
+    --accent-light: #e8d5c8;
+    --border: #ddd5c8;
+    --green: #4a7c59;
+    --red: #9b3a2a;
+    --shadow: 0 2px 20px rgba(26,22,18,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* Subtle grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative; z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    font-weight: 300;
+    margin-top: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Form elements */
+  .field {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+
+  label .hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    background: var(--cream);
+    color: var(--ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(184,134,110,0.12);
+  }
+
+  .select-wrap {
+    position: relative;
+  }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+
+  /* Two column grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Transaction type toggle */
+  .toggle-group {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .toggle-group input[type="radio"] { display: none; }
+
+  .toggle-group label {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    border: none;
+    margin: 0;
+    font-size: 0.85rem;
+    transition: background 0.15s, color 0.15s;
+    font-weight: 300;
+  }
+
+  .toggle-group input[type="radio"]:checked + label {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  /* Taxability indicator */
+  .taxability-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .taxability-badge.taxable { background: #e8f0eb; color: var(--green); }
+  .taxability-badge.exempt { background: #f5e8e6; color: var(--red); }
+  .taxability-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Info box */
+  .info-box {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #5a3e2e;
+  }
+
+  /* Results */
+  .results-card {
+    background: var(--ink);
+    border: none;
+    color: var(--cream);
+    padding: 40px;
+  }
+
+  .results-card .card-title {
+    color: rgba(245,240,232,0.4);
+  }
+  .results-card .card-title::after {
+    background: rgba(245,240,232,0.15);
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(245,240,232,0.1);
+    font-size: 1rem;
+  }
+
+  .result-row:last-child { border-bottom: none; }
+
+  .result-row .label { color: rgba(245,240,232,0.65); font-weight: 300; }
+  .result-row .value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--cream);
+  }
+
+  .result-row.total {
+    margin-top: 8px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(245,240,232,0.25);
+    border-bottom: none;
+  }
+
+  .result-row.total .label {
+    font-size: 1.2rem;
+    color: var(--cream);
+    font-weight: 400;
+  }
+
+  .result-row.total .value {
+    font-size: 1.5rem;
+    color: var(--accent-light);
+  }
+
+  .zero-tax {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: rgba(245,240,232,0.5);
+    font-size: 0.95rem;
+  }
+
+  /* Rate breakdown chips */
+  .rate-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .chip {
+    background: rgba(245,240,232,0.08);
+    border: 1px solid rgba(245,240,232,0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: rgba(245,240,232,0.6);
+    display: flex;
+    gap: 6px;
+  }
+  .chip span { color: var(--accent-light); }
+
+  /* Reference table */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .ref-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .ref-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(221,213,200,0.5);
+    font-weight: 300;
+  }
+  .ref-table tr:hover td { background: rgba(184,134,110,0.05); }
+  .ref-table .rate-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .tax-yes { color: var(--green); font-weight: 400; }
+  .tax-no { color: var(--red); }
+  .tax-cond { color: #7a6000; }
+
+  /* Calculate button */
+  button {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 1px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+  }
+  button:hover { background: #a5735d; }
+  button:active { transform: scale(0.99); }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 560px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .card { padding: 24px 18px; }
+    .results-card { padding: 28px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="eyebrow">California LLC · Sales Tax Tool</div>
+    <h1>Interior Design<br><em>Tax Calculator</em></h1>
+    <p class="subtitle">Rates sourced from CDTFA · Effective January 1, 2026</p>
+  </header>
+
+  <!-- Location Card -->
+  <div class="card">
+    <div class="card-title">01 — Location</div>
+    <div class="field">
+      <label>City / Jurisdiction <span class="hint">— determines your combined rate</span></label>
+      <div class="select-wrap">
+        <select id="citySelect" onchange="updateRate()">
+          <option value="">Select a city…</option>
+          <optgroup label="Common Design Markets">
+            <option value="Los Angeles|9.750">Los Angeles</option>
+            <option value="San Francisco|8.625">San Francisco</option>
+            <option value="San Diego|7.750">San Diego</option>
+            <option value="Beverly Hills|9.750">Beverly Hills</option>
+            <option value="Santa Monica|10.750">Santa Monica</option>
+            <option value="Malibu|10.250">Malibu</option>
+            <option value="Pasadena|10.500">Pasadena</option>
+            <option value="West Hollywood|10.500">West Hollywood</option>
+            <option value="Culver City|10.750">Culver City</option>
+            <option value="Burbank|10.500">Burbank</option>
+            <option value="Glendale|10.500">Glendale</option>
+            <option value="Long Beach|10.500">Long Beach</option>
+            <option value="San Jose|9.375">San Jose</option>
+            <option value="Oakland|10.750">Oakland</option>
+            <option value="Berkeley|10.250">Berkeley</option>
+            <option value="Palo Alto|9.125">Palo Alto</option>
+            <option value="Santa Barbara|9.250">Santa Barbara</option>
+            <option value="Irvine|7.750">Irvine</option>
+            <option value="Newport Beach|7.750">Newport Beach</option>
+            <option value="Laguna Beach|7.750">Laguna Beach</option>
+            <option value="Sacramento|8.750">Sacramento</option>
+            <option value="Palm Springs|9.250">Palm Springs</option>
+            <option value="Napa|8.750">Napa</option>
+            <option value="Monterey|9.250">Monterey</option>
+          </optgroup>
+          <optgroup label="All Other Cities (alphabetical)">
+            <option value="Adelanto|7.750">Adelanto</option>
+            <option value="Agoura Hills|9.750">Agoura Hills</option>
+            <option value="Alameda|10.750">Alameda</option>
+            <option value="Alhambra|10.500">Alhambra</option>
+            <option value="Anaheim|7.750">Anaheim</option>
+            <option value="Antioch|9.750">Antioch</option>
+            <option value="Apple Valley|8.750">Apple Valley</option>
+            <option value="Arcadia|10.500">Arcadia</option>
+            <option value="Bakersfield|8.250">Bakersfield</option>
+            <option value="Bell|9.750">Bell</option>
+            <option value="Bell Gardens|10.500">Bell Gardens</option>
+            <option value="Bellflower|10.500">Bellflower</option>
+            <option value="Benicia|9.625">Benicia</option>
+            <option value="Big Bear Lake|7.750">Big Bear Lake</option>
+            <option value="Brentwood|8.750">Brentwood</option>
+            <option value="Buena Park|8.750">Buena Park</option>
+            <option value="Camarillo|7.250">Camarillo</option>
+            <option value="Carlsbad|7.750">Carlsbad</option>
+            <option value="Carson|10.500">Carson</option>
+            <option value="Chico|9.250">Chico</option>
+            <option value="Chino Hills|7.750">Chino Hills</option>
+            <option value="Chula Vista|8.750">Chula Vista</option>
+            <option value="Concord|9.750">Concord</option>
+            <option value="Corona|8.750">Corona</option>
+            <option value="Costa Mesa|7.750">Costa Mesa</option>
+            <option value="Daly City|9.875">Daly City</option>
+            <option value="Davis|9.250">Davis</option>
+            <option value="El Cajon|8.250">El Cajon</option>
+            <option value="Elk Grove|8.750">Elk Grove</option>
+            <option value="Emeryville|10.500">Emeryville</option>
+            <option value="Encinitas|7.750">Encinitas</option>
+            <option value="Escondido|8.750">Escondido</option>
+            <option value="Folsom|7.750">Folsom</option>
+            <option value="Fontana|8.750">Fontana</option>
+            <option value="Fremont|10.250">Fremont</option>
+            <option value="Fresno|8.350">Fresno</option>
+            <option value="Fullerton|7.750">Fullerton</option>
+            <option value="Garden Grove|8.750">Garden Grove</option>
+            <option value="Gardena|10.500">Gardena</option>
+            <option value="Hayward|10.750">Hayward</option>
+            <option value="Hemet|8.750">Hemet</option>
+            <option value="Hesperia|7.750">Hesperia</option>
+            <option value="Huntington Beach|7.750">Huntington Beach</option>
+            <option value="Inglewood|10.250">Inglewood</option>
+            <option value="Indio|8.750">Indio</option>
+            <option value="La Mesa|8.500">La Mesa</option>
+            <option value="Lafayette|9.250">Lafayette</option>
+            <option value="Lakewood|10.500">Lakewood</option>
+            <option value="Lancaster|11.250">Lancaster</option>
+            <option value="Lodi|8.250">Lodi</option>
+            <option value="Lompoc|8.750">Lompoc</option>
+            <option value="Lynwood|10.750">Lynwood</option>
+            <option value="Manteca|9.000">Manteca</option>
+            <option value="Martinez|9.750">Martinez</option>
+            <option value="Menifee|8.750">Menifee</option>
+            <option value="Merced|8.250">Merced</option>
+            <option value="Milpitas|9.375">Milpitas</option>
+            <option value="Mission Viejo|7.750">Mission Viejo</option>
+            <option value="Modesto|8.875">Modesto</option>
+            <option value="Moreno Valley|8.750">Moreno Valley</option>
+            <option value="Murrieta|8.750">Murrieta</option>
+            <option value="National City|8.750">National City</option>
+            <option value="Newark|10.750">Newark</option>
+            <option value="Norwalk|10.500">Norwalk</option>
+            <option value="Novato|9.250">Novato</option>
+            <option value="Oceanside|8.250">Oceanside</option>
+            <option value="Ontario|8.750">Ontario</option>
+            <option value="Orange|7.750">Orange</option>
+            <option value="Oxnard|9.250">Oxnard</option>
+            <option value="Palmdale|11.250">Palmdale</option>
+            <option value="Paradise|8.750">Paradise</option>
+            <option value="Paramount|10.500">Paramount</option>
+            <option value="Petaluma|10.250">Petaluma</option>
+            <option value="Pico Rivera|10.750">Pico Rivera</option>
+            <option value="Pleasanton|10.250">Pleasanton</option>
+            <option value="Pomona|10.500">Pomona</option>
+            <option value="Rancho Cucamonga|7.750">Rancho Cucamonga</option>
+            <option value="Redding|7.250">Redding</option>
+            <option value="Redlands|8.750">Redlands</option>
+            <option value="Redondo Beach|9.750">Redondo Beach</option>
+            <option value="Redwood City|9.875">Redwood City</option>
+            <option value="Rialto|7.750">Rialto</option>
+            <option value="Richmond|9.750">Richmond</option>
+            <option value="Riverside|8.750">Riverside</option>
+            <option value="Rocklin|7.250">Rocklin</option>
+            <option value="Roseville|7.750">Roseville</option>
+            <option value="Salinas|9.250">Salinas</option>
+            <option value="San Bernardino|8.750">San Bernardino</option>
+            <option value="San Leandro|10.750">San Leandro</option>
+            <option value="San Marcos|8.750">San Marcos</option>
+            <option value="San Mateo|9.625">San Mateo</option>
+            <option value="San Rafael|9.250">San Rafael</option>
+            <option value="Santa Ana|9.250">Santa Ana</option>
+            <option value="Santa Clara|9.125">Santa Clara</option>
+            <option value="Santa Cruz|9.750">Santa Cruz</option>
+            <option value="Santa Rosa|10.000">Santa Rosa</option>
+            <option value="Simi Valley|7.250">Simi Valley</option>
+            <option value="Stockton|9.000">Stockton</option>
+            <option value="Sunnyvale|9.125">Sunnyvale</option>
+            <option value="Temecula|8.750">Temecula</option>
+            <option value="Thousand Oaks|7.250">Thousand Oaks</option>
+            <option value="Torrance|10.250">Torrance</option>
+            <option value="Tustin|7.750">Tustin</option>
+            <option value="Union City|10.750">Union City</option>
+            <option value="Vacaville|8.125">Vacaville</option>
+            <option value="Vallejo|9.250">Vallejo</option>
+            <option value="Ventura|7.750">Ventura</option>
+            <option value="Victorville|8.750">Victorville</option>
+            <option value="Visalia|8.500">Visalia</option>
+            <option value="Vista|8.250">Vista</option>
+            <option value="Walnut Creek|9.250">Walnut Creek</option>
+            <option value="West Covina|9.750">West Covina</option>
+            <option value="Whittier|10.500">Whittier</option>
+            <option value="Woodland Hills (LA)|9.750">Woodland Hills</option>
+          </optgroup>
+        </select>
+      </div>
+      <div id="rateDisplay" style="margin-top:10px; font-family:'DM Mono',monospace; font-size:0.85rem; color:var(--muted);">
+        — Select a city to see the combined rate
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Card -->
+  <div class="card">
+    <div class="card-title">02 — Transaction Type</div>
+    <div class="field">
+      <label>What are you billing for?</label>
+      <div class="toggle-group">
+        <input type="radio" name="txType" id="tx1" value="goods" checked onchange="updateTaxability()">
+        <label for="tx1">Goods Only</label>
+        <input type="radio" name="txType" id="tx2" value="services" onchange="updateTaxability()">
+        <label for="tx2">Services Only</label>
+        <input type="radio" name="txType" id="tx3" value="mixed" onchange="updateTaxability()">
+        <label for="tx3">Mixed</label>
+        <input type="radio" name="txType" id="tx4" value="retail" onchange="updateTaxability()">
+        <label for="tx4">Retail Resale</label>
+      </div>
+      <div id="taxabilityInfo"></div>
+    </div>
+
+    <div class="field">
+      <label>Item / Service Category <span class="hint">— affects taxability</span></label>
+      <div class="select-wrap">
+        <select id="categorySelect" onchange="updateTaxability()">
+          <option value="furniture">Furniture (sofas, chairs, tables, beds)</option>
+          <option value="fixtures">Fixtures (lighting, hardware, built-ins)</option>
+          <option value="decor">Décor & accessories (art, rugs, cushions)</option>
+          <option value="materials">Construction materials (tile, flooring, paint)</option>
+          <option value="appliances">Appliances</option>
+          <option value="design_service">Design consultation / hourly service</option>
+          <option value="project_mgmt">Project management fee</option>
+          <option value="install">Installation labor</option>
+          <option value="markup">Vendor markup / procurement fee</option>
+          <option value="custom_fab">Custom fabrication (curtains, upholstery)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amounts Card -->
+  <div class="card">
+    <div class="card-title">03 — Amounts</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Taxable Amount ($)</label>
+        <input type="number" id="taxableAmt" placeholder="0.00" min="0" step="0.01" value="">
+      </div>
+      <div class="field">
+        <label>Non-Taxable Amount ($) <span class="hint">— services, labor</span></label>
+        <input type="number" id="nonTaxableAmt" placeholder="0.00" min="0" step="0.01" value="">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Markup / Procurement Fee ($) <span class="hint">— may be taxable (see below)</span></label>
+      <input type="number" id="markupAmt" placeholder="0.00" min="0" step="0.01" value="">
+      <div class="info-box" style="margin-top:10px;">
+        <strong>Markup note:</strong> If you purchase goods wholesale and resell them to clients, the <em>full selling price</em> (including your markup) is taxable. If you charge a separate procurement/handling fee on top of a pass-through cost, that fee may also be taxable depending on how it's invoiced.
+      </div>
+    </div>
+
+    <button onclick="calculate()">Calculate Tax →</button>
+  </div>
+
+  <!-- Results -->
+  <div class="card results-card" id="resultsCard" style="display:none;">
+    <div class="card-title" style="color:rgba(245,240,232,0.4);">04 — Results</div>
+    <div id="resultsBody"></div>
+  </div>
+
+  <!-- Reference Table -->
+  <div class="card">
+    <div class="card-title">Quick Reference — CA Taxability for Interior Design</div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Item / Service</th>
+          <th>Taxable?</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Furniture sold to client</td><td class="tax-yes rate-val">YES</td><td>Full selling price incl. markup</td></tr>
+        <tr><td>Fixtures & hardware</td><td class="tax-yes rate-val">YES</td><td>Full selling price</td></tr>
+        <tr><td>Decorative accessories / art</td><td class="tax-yes rate-val">YES</td><td>Full selling price</td></tr>
+        <tr><td>Flooring, tile, paint (materials)</td><td class="tax-yes rate-val">YES</td><td>Tax on materials, not labor to install</td></tr>
+        <tr><td>Custom window treatments</td><td class="tax-yes rate-val">YES</td><td>Fabrication + materials taxable</td></tr>
+        <tr><td>Design consultation (hourly)</td><td class="tax-no rate-val">NO</td><td>Pure service — not taxable in CA</td></tr>
+        <tr><td>Project management fee</td><td class="tax-no rate-val">NO</td><td>Pure service — not taxable</td></tr>
+        <tr><td>Installation / labor</td><td class="tax-no rate-val">NO</td><td>Separately-stated labor is exempt</td></tr>
+        <tr><td>Mixed lump-sum invoice</td><td class="tax-cond rate-val">COND.</td><td>If goods & services bundled, may tax the whole amount — itemize clearly</td></tr>
+        <tr><td>Markup on pass-through goods</td><td class="tax-yes rate-val">YES</td><td>Your selling price = taxable basis</td></tr>
+        <tr><td>Procurement / sourcing fee (only)</td><td class="tax-cond rate-val">COND.</td><td>May be taxable; consult CDTFA Pub. 68</td></tr>
+        <tr><td>Reimbursed expenses (travel, etc.)</td><td class="tax-no rate-val">NO</td><td>Not subject to sales tax</td></tr>
+      </tbody>
+    </table>
+    <div class="info-box" style="margin-top:16px;">
+      <strong>CA Base Rate Structure (effective Jan 1, 2026):</strong> State 7.25% (incl. 1% Local Revenue Fund) + district/city voter-approved additions = your combined rate. The minimum in CA is 7.25% (some rural areas); most cities are 7.75%–10.75%; Lancaster and Palmdale are the highest at 11.25%.
+    </div>
+  </div>
+
+  <footer>
+    Rates sourced from <a href="https://cdtfa.ca.gov/taxes-and-fees/rates.aspx" target="_blank">CDTFA (cdtfa.ca.gov)</a>, effective January 1, 2026.<br>
+    This tool is for informational purposes only and does not constitute tax or legal advice.<br>
+    Always verify rates for your specific jurisdiction and consult a licensed CPA or tax attorney.
+  </footer>
+
+</div>
+
+<script>
+  const taxabilityData = {
+    goods: {
+      furniture: { taxable: true, note: "Furniture sold to clients is fully taxable at your selling price, including any markup." },
+      fixtures: { taxable: true, note: "Lighting, hardware, and built-ins sold to clients are taxable at the full selling price." },
+      decor: { taxable: true, note: "Decorative accessories, rugs, art pieces sold to clients are fully taxable." },
+      materials: { taxable: true, note: "Construction materials (tile, flooring, paint) sold or incorporated into a project are taxable." },
+      appliances: { taxable: true, note: "Appliances are taxable at the full selling price including markup." },
+      design_service: { taxable: false, note: "Pure design consultation services are NOT taxable in California." },
+      project_mgmt: { taxable: false, note: "Standalone project management fees are NOT taxable in California." },
+      install: { taxable: false, note: "Separately-stated installation and labor charges are NOT taxable in California." },
+      markup: { taxable: true, note: "Your full selling price (cost + markup) is the taxable basis when reselling goods." },
+      custom_fab: { taxable: true, note: "Custom fabrication (curtains, upholstery) is taxable — materials and fabrication cost." },
+    }
+  };
+
+  function getTaxability(txType, category) {
+    if (txType === 'services') return { taxable: false, note: "Pure service transactions are NOT taxable in California." };
+    if (txType === 'mixed') return { taxable: null, note: "Mixed transactions: itemize goods and services separately on your invoice. Goods are taxable; separately-stated services/labor are not. Bundling them may make the entire amount taxable." };
+    if (txType === 'retail') return { taxable: true, note: "Retail resale of goods is fully taxable. You collect tax from client on the full selling price including your markup." };
+    return taxabilityData.goods[category] || { taxable: true, note: "" };
+  }
+
+  function updateTaxability() {
+    const txType = document.querySelector('input[name="txType"]:checked').value;
+    const category = document.getElementById('categorySelect').value;
+    const info = getTaxability(txType, category);
+    const container = document.getElementById('taxabilityInfo');
+    if (info.taxable === true) {
+      container.innerHTML = `<div class="taxability-badge taxable"><div class="dot"></div>TAXABLE</div><div class="info-box">${info.note}</div>`;
+    } else if (info.taxable === false) {
+      container.innerHTML = `<div class="taxability-badge exempt"><div class="dot"></div>EXEMPT</div><div class="info-box">${info.note}</div>`;
+    } else {
+      container.innerHTML = `<div class="taxability-badge" style="background:#fef3cd;color:#7a6000;"><div class="dot"></div>CONDITIONAL</div><div class="info-box">${info.note}</div>`;
+    }
+  }
+
+  function updateRate() {
+    const sel = document.getElementById('citySelect');
+    const val = sel.value;
+    const display = document.getElementById('rateDisplay');
+    if (!val) { display.textContent = '— Select a city to see the combined rate'; return; }
+    const [city, rate] = val.split('|');
+    display.innerHTML = `<strong>${city}:</strong> <span style="color:var(--accent)">${rate}%</span> combined rate`;
+  }
+
+  function fmt(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function calculate() {
+    const sel = document.getElementById('citySelect');
+    if (!sel.value) { alert('Please select a city first.'); return; }
+    const [city, rateStr] = sel.value.split('|');
+    const rate = parseFloat(rateStr) / 100;
+
+    const txType = document.querySelector('input[name="txType"]:checked').value;
+    const category = document.getElementById('categorySelect').value;
+    const info = getTaxability(txType, category);
+
+    const taxableAmt = parseFloat(document.getElementById('taxableAmt').value) || 0;
+    const nonTaxableAmt = parseFloat(document.getElementById('nonTaxableAmt').value) || 0;
+    const markupAmt = parseFloat(document.getElementById('markupAmt').value) || 0;
+
+    let effectiveTaxable = taxableAmt;
+    // If purely exempt service, taxable = 0
+    if (info.taxable === false) effectiveTaxable = 0;
+    // Markup is taxable if goods involved
+    const markupTaxable = (info.taxable !== false) ? markupAmt : 0;
+    const totalTaxable = effectiveTaxable + markupTaxable;
+    const taxAmount = totalTaxable * rate;
+    const subtotal = taxableAmt + nonTaxableAmt + markupAmt;
+    const grandTotal = subtotal + taxAmount;
+
+    // Rate breakdown
+    const statePortion = totalTaxable * 0.0725;
+    const localPortion = taxAmount - statePortion;
+
+    const card = document.getElementById('resultsCard');
+    card.style.display = 'block';
+
+    let html = '';
+    if (totalTaxable === 0 && subtotal > 0) {
+      html = `<div class="zero-tax">No sales tax applies to this transaction — all amounts are for exempt services or labor.</div>`;
+      html += `<div class="result-row total"><span class="label">Invoice Total</span><span class="value">${fmt(subtotal)}</span></div>`;
+    } else {
+      html += `<div class="result-row"><span class="label">Taxable goods / resale amount</span><span class="value">${fmt(effectiveTaxable)}</span></div>`;
+      if (markupTaxable > 0) html += `<div class="result-row"><span class="label">Taxable markup / procurement</span><span class="value">${fmt(markupTaxable)}</span></div>`;
+      if (nonTaxableAmt > 0) html += `<div class="result-row"><span class="label">Non-taxable services / labor</span><span class="value">${fmt(nonTaxableAmt)}</span></div>`;
+      html += `<div class="result-row"><span class="label">Tax basis (taxable subtotal)</span><span class="value">${fmt(totalTaxable)}</span></div>`;
+      html += `<div class="result-row"><span class="label">Sales tax @ ${rateStr}% (${city})</span><span class="value">${fmt(taxAmount)}</span></div>`;
+      html += `<div class="result-row total"><span class="label">Invoice Total</span><span class="value">${fmt(grandTotal)}</span></div>`;
+      if (totalTaxable > 0) {
+        html += `<div class="rate-chips">
+          <div class="chip">State <span>6.00%</span></div>
+          <div class="chip">Local Revenue Fund <span>1.25%</span></div>
+          <div class="chip">Local / District <span>${(parseFloat(rateStr) - 7.25).toFixed(3)}%</span></div>
+          <div class="chip">Combined <span>${rateStr}%</span></div>
+        </div>`;
+      }
+    }
+
+    document.getElementById('resultsBody').innerHTML = html;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Init
+  updateTaxability();
+</script>
+</body>
+</html>
